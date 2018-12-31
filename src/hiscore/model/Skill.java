@@ -1,5 +1,9 @@
 package hiscore.model;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
+
 public enum Skill {
 
     ATTACK,
@@ -24,5 +28,7 @@ public enum Skill {
     FARMING,
     RUNECRAFT,
     HUNTER,
-    CONSTRUCTION
+    CONSTRUCTION;
+
+    public static final Set<Skill> VALUES = Collections.unmodifiableSet(EnumSet.allOf(Skill.class));
 }
