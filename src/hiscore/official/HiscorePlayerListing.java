@@ -72,7 +72,7 @@ public final class HiscorePlayerListing implements PlayerListing {
                 skill = Skill.ATTACK;
                 break;
             case 2:
-                skill = Skill.STRENGTH;
+                skill = Skill.DEFENCE;
                 break;
             case 3:
                 skill = Skill.STRENGTH;
