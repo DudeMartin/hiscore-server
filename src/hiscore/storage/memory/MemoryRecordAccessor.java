@@ -3,6 +3,7 @@ package hiscore.storage.memory;
 import hiscore.official.HiscoreType;
 import hiscore.storage.PlayerRecord;
 import hiscore.storage.RecordAccessor;
+import hiscore.storage.SortedSetPlayerRecord;
 import hiscore.utils.NameUtilities;
 
 import java.util.Map;
@@ -14,6 +15,6 @@ public final class MemoryRecordAccessor implements RecordAccessor {
 
     @Override
     public PlayerRecord getRecord(String name, HiscoreType type) {
-        return records.computeIfAbsent(NameUtilities.toConsistentFormat(name, type), key -> new MemoryPlayerRecord());
+        return records.computeIfAbsent(NameUtilities.toConsistentFormat(name, type), key -> new SortedSetPlayerRecord());
     }
 }
