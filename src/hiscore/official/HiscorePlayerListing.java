@@ -6,12 +6,14 @@ import hiscore.model.PlayerListing;
 import hiscore.model.Skill;
 import hiscore.model.SkillListing;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
 public final class HiscorePlayerListing implements PlayerListing {
 
+    private final Instant timestamp = Instant.now();
     private final int rank;
     private final int totalLevel;
     private final long totalExperience;
@@ -31,6 +33,11 @@ public final class HiscorePlayerListing implements PlayerListing {
         while (index < lineCount) {
             addMinigame(index, listingParts[index++]);
         }
+    }
+
+    @Override
+    public Instant timestamp() {
+        return timestamp;
     }
 
     @Override
