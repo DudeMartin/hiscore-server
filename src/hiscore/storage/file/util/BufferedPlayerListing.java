@@ -86,6 +86,6 @@ final class BufferedPlayerListing implements PlayerListing {
     }
 
     ByteBuffer getBytes() {
-        return listingBytes.duplicate();
+        return listingBytes.asReadOnlyBuffer();
     }
 }
