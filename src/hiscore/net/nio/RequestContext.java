@@ -1,6 +1,9 @@
 package hiscore.net.nio;
 
+import hiscore.net.http.HttpRequest;
 import hiscore.net.http.HttpResponseBuilder;
+import hiscore.net.http.IncompleteRequestException;
+import hiscore.net.http.InvalidRequestException;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -36,10 +39,21 @@ public final class RequestContext {
         return responseBuffer.asReadOnlyBuffer();
     }
 
+    private void sendResponse(HttpResponseBuilder builder) {
+        responseBuffer = ByteBuffer.wrap(builder.buildByteArray());
+    }
+
     private boolean processAccumulatedRequest() {
-        responseBuffer = ByteBuffer.wrap(new HttpResponseBuilder()
-                .withStatus("200 OK")
-                .withBody("Hello, world!").buildByteArray());
+        HttpRequest request;
+        try {
+            request = HttpRequest.parse(accumulator.toByteArray());
+        } catch (IncompleteRequestException e) {
+            return false;
+        } catch (InvalidRequestException e) {
+            sendResponse(new HttpResponseBuilder().withStatusLine("400 Bad Request"));
+            return true;
+        }
+        sendResponse(new HttpResponseBuilder().withStatusLine("200 OK").withBody(request.queryString()));
         return true;
     }
 }

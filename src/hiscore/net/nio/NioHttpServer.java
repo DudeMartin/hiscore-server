@@ -44,11 +44,15 @@ public final class NioHttpServer extends Thread implements HttpServer {
     public synchronized void close() throws IOException {
         if (running) {
             running = false;
+            selector.wakeup();
+            try {
+                join();
+            } catch (InterruptedException ignored) {}
             workerPool.shutdown();
             try {
-                serverChannel.close();
-            } finally {
                 selector.close();
+            } finally {
+                serverChannel.close();
             }
         }
     }
