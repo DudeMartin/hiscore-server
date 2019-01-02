@@ -1,9 +1,15 @@
 package hiscore.net.http;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class HttpRequest {
 
@@ -21,7 +27,7 @@ public final class HttpRequest {
 
     public String queryString() {
         int questionIndex = requestUri.indexOf('?');
-        return questionIndex == -1 ? "" : requestUri.substring(questionIndex + 1);
+        return questionIndex == -1 ? "" : requestUri.substring(questionIndex + 1).toLowerCase();
     }
 
     public static HttpRequest parse(byte[] requestBytes) throws IncompleteRequestException, InvalidRequestException {
@@ -53,5 +59,22 @@ public final class HttpRequest {
         }
         int blankIndex = requestText.indexOf("\r\n\r\n");
         return new HttpRequest(method, requestUri, headers, blankIndex == -1 ? "" : requestText.substring(blankIndex + 4));
+    }
+
+    public static Map<String, List<String>> parseParameters(String queryString) {
+        Map<String, List<String>> queryParameters = new HashMap<>();
+        String[] parameters = queryString.split("&");
+        for (String parameter : parameters) {
+            int equalsIndex = parameter.indexOf('=');
+            if (equalsIndex != -1) {
+                String name = parameter.substring(0, equalsIndex);
+                String value = parameter.substring(equalsIndex + 1);
+                try {
+                    queryParameters.merge(name, Collections.singletonList(URLDecoder.decode(value, StandardCharsets.ISO_8859_1.name())), (oldValues, newValues) ->
+                            Stream.concat(oldValues.stream(), newValues.stream()).collect(Collectors.toList()));
+                } catch (UnsupportedEncodingException impossible) {}
+            }
+        }
+        return queryParameters;
     }
 }

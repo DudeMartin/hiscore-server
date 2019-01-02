@@ -4,6 +4,7 @@ import hiscore.net.HttpServer;
 import hiscore.net.nio.handlers.AcceptHandler;
 import hiscore.net.nio.handlers.RequestHandler;
 import hiscore.net.nio.handlers.ResponseHandler;
+import hiscore.storage.RecordAccessor;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -20,10 +21,15 @@ import java.util.concurrent.locks.ReentrantLock;
 public final class NioHttpServer extends Thread implements HttpServer {
 
     private final ReentrantLock registerLock = new ReentrantLock();
+    private final RecordAccessor recordAccessor;
     private Selector selector;
     private ServerSocketChannel serverChannel;
     private ExecutorService workerPool;
     private volatile boolean running;
+
+    public NioHttpServer(RecordAccessor recordAccessor) {
+        this.recordAccessor = recordAccessor;
+    }
 
     @Override
     public synchronized void start(int port) throws IOException {
@@ -98,7 +104,7 @@ public final class NioHttpServer extends Thread implements HttpServer {
         registerLock.lock();
         try {
             selector.wakeup();
-            clientChannel.register(selector, SelectionKey.OP_READ, new RequestContext());
+            clientChannel.register(selector, SelectionKey.OP_READ, new RequestContext(recordAccessor));
         } finally {
             registerLock.unlock();
         }

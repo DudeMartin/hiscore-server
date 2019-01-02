@@ -4,24 +4,42 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Objects;
 
 public final class HttpResponseBuilder {
 
-    private static final Charset RESPONSE_CHARSET = StandardCharsets.ISO_8859_1;
+    public static final Charset RESPONSE_CHARSET = StandardCharsets.ISO_8859_1;
     private String statusLine;
-    private String body;
+    private String contentType;
+    private byte[] body = new byte[0];
 
-    public HttpResponseBuilder withStatusLine(String statusLine) {
-        this.statusLine = statusLine;
+    public HttpResponseBuilder(String statusLine) {
+        this.statusLine = validateNonBlank(statusLine, "The status line cannot be blank.");
+        withMediaType("text/html");
+    }
+
+    public HttpResponseBuilder withMediaType(String mediaType) {
+        mediaType = validateNonBlank(mediaType, "The media type cannot be blank.");
+        if (mediaType.startsWith("text/")) {
+            this.contentType = mediaType + "; charset=" + RESPONSE_CHARSET.name();
+        } else {
+            this.contentType = mediaType;
+        }
+        return this;
+    }
+
+    public HttpResponseBuilder withBody(byte[] body) {
+        this.body = Objects.requireNonNull(body);
         return this;
     }
 
     public HttpResponseBuilder withBody(String body) {
-        this.body = body;
-        return this;
+        return withBody(body.getBytes(RESPONSE_CHARSET));
     }
 
-    public String build() {
+    public byte[] build() {
+        int bodyLength = body.length;
         StringBuilder builder = new StringBuilder();
         builder.append("HTTP/1.1 ");
         builder.append(statusLine);
@@ -29,19 +47,24 @@ public final class HttpResponseBuilder {
         builder.append("Date: ");
         builder.append(ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
         builder.append("\r\n");
-        builder.append("Content-Type: text/html; charset=");
-        builder.append(RESPONSE_CHARSET.name());
+        builder.append("Content-Type: ");
+        builder.append(contentType);
         builder.append("\r\n");
         builder.append("Content-Length: ");
-        builder.append(body.getBytes(RESPONSE_CHARSET).length);
+        builder.append(bodyLength);
         builder.append("\r\n");
-        builder.append("Connection: closed");
+        builder.append("Connection: close");
         builder.append("\r\n\r\n");
-        builder.append(body);
-        return builder.toString();
+        byte[] headerBytes = builder.toString().getBytes(RESPONSE_CHARSET);
+        byte[] responseBytes = Arrays.copyOf(headerBytes, headerBytes.length + bodyLength);
+        System.arraycopy(body, 0, responseBytes, headerBytes.length, bodyLength);
+        return responseBytes;
     }
 
-    public byte[] buildByteArray() {
-        return build().getBytes(RESPONSE_CHARSET);
+    private static String validateNonBlank(String string, String message) {
+        if (string == null || string.trim().isEmpty()) {
+            throw new IllegalArgumentException(message);
+        }
+        return string;
     }
 }

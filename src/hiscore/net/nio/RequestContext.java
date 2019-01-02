@@ -1,21 +1,26 @@
 package hiscore.net.nio;
 
+import hiscore.net.api.LookupRequestHandler;
+import hiscore.net.api.UpdateRequestHandler;
 import hiscore.net.http.HttpRequest;
 import hiscore.net.http.HttpResponseBuilder;
 import hiscore.net.http.IncompleteRequestException;
 import hiscore.net.http.InvalidRequestException;
+import hiscore.storage.RecordAccessor;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public final class RequestContext {
 
     private static final ThreadLocal<byte[]> threadTransferBuffer = ThreadLocal.withInitial(() -> new byte[1024]);
     private final ByteArrayOutputStream accumulator = new ByteArrayOutputStream();
+    private final RecordAccessor recordAccessor;
     private ByteBuffer responseBuffer;
 
-    RequestContext() {
-
+    RequestContext(RecordAccessor recordAccessor) {
+        this.recordAccessor = recordAccessor;
     }
 
     public boolean processRequest(ByteBuffer buffer) {
@@ -40,7 +45,7 @@ public final class RequestContext {
     }
 
     private void sendResponse(HttpResponseBuilder builder) {
-        responseBuffer = ByteBuffer.wrap(builder.buildByteArray());
+        responseBuffer = ByteBuffer.wrap(builder.build());
     }
 
     private boolean processAccumulatedRequest() {
@@ -50,10 +55,21 @@ public final class RequestContext {
         } catch (IncompleteRequestException e) {
             return false;
         } catch (InvalidRequestException e) {
-            sendResponse(new HttpResponseBuilder().withStatusLine("400 Bad Request"));
+            sendResponse(new HttpResponseBuilder("400 Bad Request"));
             return true;
         }
-        sendResponse(new HttpResponseBuilder().withStatusLine("200 OK").withBody(request.queryString()));
+        HttpResponseBuilder response;
+        try {
+            if ("GET".equals(request.method)) {
+                response = new LookupRequestHandler(request, recordAccessor).generateResponse();
+            } else {
+                response = new UpdateRequestHandler(request, recordAccessor).generateResponse();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            response = new HttpResponseBuilder("500 Internal Server Error");
+        }
+        sendResponse(response);
         return true;
     }
 }
