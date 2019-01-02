@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-public final class LookupRequestHandler extends RequestHandler {
+public final class LookupRequestHandler extends PlayerRequestHandler {
 
     public LookupRequestHandler(HttpRequest request, RecordAccessor recordAccessor) {
         super(request, recordAccessor);

@@ -7,7 +7,7 @@ import hiscore.storage.RecordAccessor;
 
 import java.io.IOException;
 
-public final class UpdateRequestHandler extends RequestHandler {
+public final class UpdateRequestHandler extends PlayerRequestHandler {
 
     public UpdateRequestHandler(HttpRequest request, RecordAccessor recordAccessor) {
         super(request, recordAccessor);

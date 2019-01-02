@@ -20,8 +20,7 @@ public final class HttpResponseBuilder {
     }
 
     public HttpResponseBuilder withMediaType(String mediaType) {
-        mediaType = validateNonBlank(mediaType, "The media type cannot be blank.");
-        if (mediaType.startsWith("text/")) {
+        if (validateNonBlank(mediaType, "The media type cannot be blank.").startsWith("text/")) {
             this.contentType = mediaType + "; charset=" + RESPONSE_CHARSET.name();
         } else {
             this.contentType = mediaType;
@@ -34,28 +33,24 @@ public final class HttpResponseBuilder {
         return this;
     }
 
-    public HttpResponseBuilder withBody(String body) {
-        return withBody(body.getBytes(RESPONSE_CHARSET));
-    }
-
     public byte[] build() {
         int bodyLength = body.length;
-        StringBuilder builder = new StringBuilder();
-        builder.append("HTTP/1.1 ");
-        builder.append(statusLine);
-        builder.append("\r\n");
-        builder.append("Date: ");
-        builder.append(ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
-        builder.append("\r\n");
-        builder.append("Content-Type: ");
-        builder.append(contentType);
-        builder.append("\r\n");
-        builder.append("Content-Length: ");
-        builder.append(bodyLength);
-        builder.append("\r\n");
-        builder.append("Connection: close");
-        builder.append("\r\n\r\n");
-        byte[] headerBytes = builder.toString().getBytes(RESPONSE_CHARSET);
+        StringBuilder headerBuilder = new StringBuilder();
+        headerBuilder.append("HTTP/1.1 ");
+        headerBuilder.append(statusLine);
+        headerBuilder.append("\r\n");
+        headerBuilder.append("Date: ");
+        headerBuilder.append(ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
+        headerBuilder.append("\r\n");
+        headerBuilder.append("Content-Type: ");
+        headerBuilder.append(contentType);
+        headerBuilder.append("\r\n");
+        headerBuilder.append("Content-Length: ");
+        headerBuilder.append(bodyLength);
+        headerBuilder.append("\r\n");
+        headerBuilder.append("Connection: close");
+        headerBuilder.append("\r\n\r\n");
+        byte[] headerBytes = headerBuilder.toString().getBytes(RESPONSE_CHARSET);
         byte[] responseBytes = Arrays.copyOf(headerBytes, headerBytes.length + bodyLength);
         System.arraycopy(body, 0, responseBytes, headerBytes.length, bodyLength);
         return responseBytes;

@@ -12,13 +12,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-abstract class RequestHandler {
+abstract class PlayerRequestHandler {
 
     final HttpRequest request;
     final Map<String, List<String>> requestParameters;
     final RecordAccessor recordAccessor;
 
-    RequestHandler(HttpRequest request, RecordAccessor recordAccessor) {
+    PlayerRequestHandler(HttpRequest request, RecordAccessor recordAccessor) {
         this.request = request;
         this.requestParameters = Collections.unmodifiableMap(HttpRequest.parseParameters(
                 "GET".equals(request.method) ? request.queryString() : request.body));

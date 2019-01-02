@@ -35,8 +35,10 @@ public final class HttpRequest {
         String[] lines = requestText.split("\r\n");
         String requestLine = lines[0];
         String[] requestLineParts = requestLine.split(" ");
-        if (requestLineParts.length != 3) {
+        if (requestLineParts.length < 3) {
             throw new IncompleteRequestException();
+        } else if (requestLineParts.length > 3) {
+            throw new InvalidRequestException();
         }
         String method = requestLineParts[0];
         String requestUri = requestLineParts[1];
@@ -58,7 +60,10 @@ public final class HttpRequest {
             headers.add(new Header(line.substring(0, colonIndex), line.substring(colonIndex + 1)));
         }
         int blankIndex = requestText.indexOf("\r\n\r\n");
-        return new HttpRequest(method, requestUri, headers, blankIndex == -1 ? "" : requestText.substring(blankIndex + 4));
+        if (blankIndex == -1) {
+            throw new IncompleteRequestException();
+        }
+        return new HttpRequest(method, requestUri, headers, requestText.substring(blankIndex + 4));
     }
 
     public static Map<String, List<String>> parseParameters(String queryString) {
