@@ -1,5 +1,6 @@
 package hiscore.net.nio.handlers;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 
@@ -30,7 +31,11 @@ public final class RequestHandler extends DataHandler {
                         return;
                     }
                 }
-            } catch (Exception swallowed) {
+            } catch (IOException swallowed) {
+                closeChannel();
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
                 closeChannel();
                 return;
             } finally {
