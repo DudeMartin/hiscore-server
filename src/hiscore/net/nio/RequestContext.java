@@ -6,6 +6,7 @@ import hiscore.net.http.HttpRequest;
 import hiscore.net.http.HttpResponseBuilder;
 import hiscore.net.http.IncompleteRequestException;
 import hiscore.net.http.InvalidRequestException;
+import hiscore.official.HiscoreException;
 import hiscore.storage.RecordAccessor;
 
 import java.io.ByteArrayOutputStream;
@@ -65,6 +66,8 @@ public final class RequestContext {
             } else {
                 response = new UpdateRequestHandler(request, recordAccessor).generateResponse();
             }
+        } catch (HiscoreException e) {
+            response = new HttpResponseBuilder("204 No Content");
         } catch (IOException e) {
             e.printStackTrace();
             response = new HttpResponseBuilder("500 Internal Server Error");

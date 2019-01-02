@@ -21,13 +21,13 @@ final class FilePlayerRecord extends SortedSetPlayerRecord {
     private final AsynchronousFileChannel recordChannel;
     private final AtomicLong recordFilePosition;
 
-    FilePlayerRecord(Path recordFile) throws IOException {
-        if (Files.exists(recordFile)) {
-            Collection<PlayerListing> initialListings = readListings(Files.readAllBytes(recordFile));
-            recordChannel = AsynchronousFileChannel.open(recordFile, StandardOpenOption.WRITE);
+    FilePlayerRecord(Path recordPath, boolean fileExists) throws IOException {
+        if (fileExists) {
+            Collection<PlayerListing> initialListings = readListings(Files.readAllBytes(recordPath));
+            recordChannel = AsynchronousFileChannel.open(recordPath, StandardOpenOption.WRITE);
             listings.addAll(initialListings);
         } else {
-            recordChannel = AsynchronousFileChannel.open(recordFile, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+            recordChannel = AsynchronousFileChannel.open(recordPath, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
         }
         recordFilePosition = new AtomicLong(recordChannel.size());
     }

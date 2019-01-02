@@ -27,20 +27,16 @@ class MemoryRecordAccessorTest {
         assertEmptyRecord(record);
         updateRecord();
         record = getRecord();
-        Assertions.assertTrue(record.firstListing().isPresent());
-        Assertions.assertEquals(record.firstListing(), record.mostRecentListing());
         Assertions.assertEquals(1, record.listingsBetween(Instant.MIN, Instant.MAX).size());
     }
 
     @Test
     void testRecordOrdering() throws Exception {
         updateRecord();
-        PlayerListing firstListing = getRecord().firstListing().get();
+        PlayerListing firstListing = getRecord().listingsBetween(Instant.MIN, Instant.now()).get(0);
         Thread.sleep(2000);
         updateRecord();
         PlayerRecord record = getRecord();
-        Assertions.assertEquals(firstListing, record.firstListing().get());
-        Assertions.assertNotEquals(record.firstListing(), record.mostRecentListing());
         Assertions.assertEquals(Collections.singletonList(firstListing), record.listingsBetween(Instant.MIN, firstListing.timestamp().plusSeconds(1)));
     }
 
@@ -53,8 +49,6 @@ class MemoryRecordAccessorTest {
     }
 
     private void assertEmptyRecord(PlayerRecord record) {
-        Assertions.assertFalse(record.firstListing().isPresent());
-        Assertions.assertFalse(record.mostRecentListing().isPresent());
         Assertions.assertTrue(record.listingsBetween(Instant.MIN, Instant.MAX).isEmpty());
     }
 }
