@@ -22,13 +22,19 @@ public final class LookupRequestHandler extends PlayerRequestHandler {
 
     @Override
     HttpResponseBuilder generateResponseInternal(String name, HiscoreType type) throws IOException {
-        Optional<String> startTimeOptional = parameterValue("start", startTime -> Long.parseLong(startTime) >= 0);
-        if (!startTimeOptional.isPresent()) {
-            return badRequestResponse();
-        }
-        String startTime = startTimeOptional.get();
-        Optional<String> endTimeOptional = parameterValue("end", endTime -> Long.parseLong(endTime) > Long.parseLong(startTime));
-        if (!endTimeOptional.isPresent()) {
+        String startTime;
+        Optional<String> endTimeOptional;
+        try {
+            Optional<String> startTimeOptional = parameterValue("start", time -> Long.parseLong(time) >= 0);
+            if (!startTimeOptional.isPresent()) {
+                return badRequestResponse();
+            }
+            startTime = startTimeOptional.get();
+            endTimeOptional = parameterValue("end", time -> Long.parseLong(time) > Long.parseLong(startTime));
+            if (!endTimeOptional.isPresent()) {
+                return badRequestResponse();
+            }
+        } catch (NumberFormatException swallowed) {
             return badRequestResponse();
         }
         PlayerRecord record = recordAccessor.getRecord(name, type);
